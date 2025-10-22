@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HAI v9.4 — Bilingual Prototype</title>
+  <meta name="description" content="HAI v9.4 Bilingual Full Prototype — Admin-first, multi-study manager, participant codes, ICF (ICH-GCP), oval dual-frame camera, Excel/PDF/Word exports">
+  <link rel="icon" href="assets/logo.svg">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header>
+    <img src="assets/logo.svg" alt="LH logo">
+    <div class="title" id="title">HAI v9.4 — Bilingual Prototype</div>
+    <div class="lang">
+      <button class="btn-ghost" id="langBtn" onclick="setLang(LANG==='en'?'fr':'en')">FR</button>
+      <span class="small" id="langAlt">EN</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="tabbar">
+      <div class="tab active" id="tab-admin" onclick="STATE.tab='admin';render()">Admin Dashboard</div>
+      <div class="tab" id="tab-session" onclick="STATE.tab='session';render()">Participant Session</div>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <section id="panel-admin" class="grid cards">
+      <div class="card">
+        <h3 id="lblStudy">Study Name</h3>
+        <input id="study" class="input" placeholder="">
+        <div class="row">
+          <div style="flex:1">
+            <label class="small" id="lblClient">Client</label>
+            <input id="client" class="input">
+          </div>
+          <div style="flex:1">
+            <label class="small" id="lblProduct">Product</label>
+            <input id="product" class="input">
+          </div>
+        </div>
+        <div class="row">
+          <div style="flex:1">
+            <label class="small" id="lblBatch">Batch #</label>
+            <input id="batch" class="input">
+          </div>
+          <div style="flex:1">
+            <label class="small" id="lblInternal">Internal Code</label>
+            <input id="internal" class="input">
+          </div>
+        </div>
+        <label class="small" id="lblType">Product Type</label>
+        <input id="type" class="input">
+        <div class="row" style="margin-top:10px">
+          <button class="btn-grey" id="btnTemplate" onclick="useTemplate()">Use Template</button>
+          <button class="btn" id="btnCreate" onclick="onCreate()">Create</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Studies</h3>
+        <table class="table">
+          <thead><tr><th>Study</th><th>Participants</th><th>Actions</th></tr></thead>
+          <tbody id="studiesBody"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>Participants</h3>
+        <div class="row">
+          <input id="pname" class="input" placeholder="Participant name (optional)">
+          <button class="btn" onclick="addParticipant()">Add</button>
+        </div>
+        <table class="table" style="margin-top:8px">
+          <thead><tr><th>Code</th><th>Name</th><th>Open</th></tr></thead>
+          <tbody id="partBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SESSION PANEL -->
+    <section id="panel-session" style="display:none">
+      <div class="grid cards">
+        <div class="card">
+          <div class="row" style="justify-content:space-between;align-items:center">
+            <h3 id="sessionStudy">—</h3>
+            <div class="row">
+              <button class="btn-ghost" id="btnICF" onclick="openICF()">Open ICF</button>
+              <button class="btn-ghost" id="btnResume" onclick="sessionResume()">Resume</button>
+              <button class="btn" id="btnExit" onclick="sessionExit()">Exit & Save</button>
+            </div>
+          </div>
+          <div class="small">Code: <strong id="currentCode">—</strong></div>
+        </div>
+
+        <div class="card">
+          <h3 id="camTitle">Camera (Oval Dual-Frame)</h3>
+          <div class="camera-wrap">
+            <video id="video" class="camera" autoplay playsinline></video>
+            <div class="dual-egg">
+              <div class="egg"></div>
+              <div class="egg"></div>
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn" id="btnStartCam" onclick="startCam()">Start Camera</button>
+            <button class="btn-ghost" id="btnStopCam" onclick="stopCam()">Stop</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 id="metricTitle">Dermatology Metrics (0–100)</h3>
+          <div class="row">
+            <div style="flex:1">
+              <label>Wrinkles</label><input id="m_Wrinkles" class="metric" type="range" min="0" max="100" value="0">
+              <label>Redness</label><input id="m_Redness" class="metric" type="range" min="0" max="100" value="0">
+              <label>Dryness</label><input id="m_Dryness" class="metric" type="range" min="0" max="100" value="0">
+              <label>Comedones</label><input id="m_Comedones" class="metric" type="range" min="0" max="100" value="0">
+            </div>
+            <div style="flex:1">
+              <label>Pores</label><input id="m_Pores" class="metric" type="range" min="0" max="100" value="0">
+              <label>Hydration</label><input id="m_Hydration" class="metric" type="range" min="0" max="100" value="0">
+              <label>Brightness</label><input id="m_Brightness" class="metric" type="range" min="0" max="100" value="0">
+              <label>Hyperpigmentation</label><input id="m_Hyperpigmentation" class="metric" type="range" min="0" max="100" value="0">
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px"><button class="btn" id="btnSaveScore" onclick="saveScores()">Save Scores</button></div>
+        </div>
+
+        <div class="card">
+          <h3 id="chartTitle">Colored Chart</h3>
+          <div class="chart"><canvas id="chart"></canvas></div>
+          <div class="legend">
+            <div class="l"><span class="dot" style="background:#10b981"></span>0–20 Minimal</div>
+            <div class="l"><span class="dot" style="background:#f59e0b"></span>21–40 Mild</div>
+            <div class="l"><span class="dot" style="background:#fb923c"></span>41–60 Moderate</div>
+            <div class="l"><span class="dot" style="background:#ef4444"></span>61–80 Marked</div>
+            <div class="l"><span class="dot" style="background:#b91c1c"></span>81–100 Severe</div>
+          </div>
+          <div class="small" id="logoNote" style="margin-top:8px">Embedded logo on exports</div>
+        </div>
+
+        <div class="card">
+          <h3 id="expTitle">Export</h3>
+          <div class="row">
+            <button class="btn" id="btnX" onclick="doExportExcel()">Excel</button>
+            <button class="btn-ghost" id="btnP" onclick="doExportPDF()">PDF</button>
+            <button class="btn-ghost" id="btnW" onclick="doExportWord()">Word</button>
+          </div>
+          <p class="small">Excel: .xls (SpreadsheetML), PDF: browser print dialog, Word: .doc (HTML)</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ICF Modal -->
+    <div class="modal" id="icf"><div class="sheet"></div></div>
+  </main>
+
+  <footer>
+    <div class="small">© 2025 Laboratoire Hibalogique — HAI v9.4 Prototype. Default English (toggle FR). Admin-first, multi-study manager, participant codes (HAI-001), session exit/resume, clean ICH GCP ICF.</div>
+  </footer>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>
